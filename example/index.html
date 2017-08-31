@@ -1,0 +1,155 @@
+<!Doctype HTML>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>        
+        <script src="https://unpkg.com/react@latest/dist/react.js"></script>
+        <script src="https://unpkg.com/react-dom@latest/dist/react-dom.js"></script>
+        <script src="./jsmind.js"></script>
+        <link href="jsmind.css" rel="stylesheet" type="text/css"/>
+        <script src="https://unpkg.com/antd@2.12.8/dist/antd.min.js"></script>
+        <link href="https://unpkg.com/antd@2.12.8/dist/antd.min.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="text/babel">
+            console.log(jsMind);
+            // const jsMind = require('jsmind');
+            class ReactJsmind extends React.Component {
+                constructor(props) {
+                  super(props);
+                }
+                componentDidMount(){
+                    const { mind, options } = this.props;
+                    const opt = {
+                        ...options,
+                        container: 'jsmind_container',
+                    }
+                    const jm = new jsMind(opt);
+                    this.jm = jm;
+                    jm.show(mind);
+                }
+                componentWillReceiveProps(props){
+                    const { mind, options } = props;
+                    const opt = {
+                        ...options,
+                        container: 'jsmind_container',
+                    }
+                    // const jm = jsMind.current;
+                    this.jm.show(mind);
+                }
+
+                render() {
+                    // const jm = jsMind.current;
+                    // console.log(jm);
+                    const { styles, onClick, onContextMenu, onMouseDown, onMouseUp } = this.props;
+                    return (<div
+                        id="jsmind_container"
+                        onClick={onClick}
+                        // onContextMenu={onContextMenu}
+                        onMouseDown={(e)=>{
+                            onMouseDown(e, this.jm.get_selected_node());
+                        }}
+                        onMouseUp={(e)=>{
+                            onMouseUp(e, this.jm.get_selected_node());
+                        }}
+                        style={styles}
+                    ></div>);
+                }
+            }
+
+            class ParentComponent extends React.Component {
+                constructor(props) {
+                  super(props);
+                  this.state = {
+                    visible: true,
+                    mind: props.mind,
+                  };
+                }
+                handleClickButtton = () => {
+                    this.setState({
+                        visible: !this.state.visible,   
+                    });
+                }
+                // componentDidMount(){
+                //     const { mind } = this.state;
+                //     const that = this;
+                //     setInterval(function(){
+                //         if(mind.data.length > 1)
+                //         {
+                //             mind.data.pop();
+                //             that.setState({
+                //                 mind,
+                //             });
+                //         }
+
+                //     }, 1000);
+                // }
+                handleContextMenu=(e, jmnode)=>{
+
+                }
+                handleMouseDown=(e, jmnode) => {
+
+                }
+                handleMouseUp = (e, jmnode) => {
+
+                }
+                handleClick = (e, jmnode) => {
+
+                }
+                render() {
+                    const { styles, mind, options } = this.props;
+                    const { visible } = this.state;
+                    return (<div>
+                        <button onClick={this.handleClickButtton}>123</button>
+                        {visible?
+                        <ReactJsmind
+                            styles= {styles}
+                            mind={mind}
+                            options={options}
+                            onClick={this.handleClick}
+                            onContextMenu={this.handleContextMenu}
+                            onMouseDown={this.handleMouseDown}
+                            onMouseUp={this.handleMouseUp}
+                        />
+                        : null}
+                    </div>
+                    );
+                }
+            }
+
+            var mind = {
+                "version": 1,
+                "meta":{
+                    "name":"demo",
+                    "author":"hizzgdev@163.com",
+                    "version":"0.2",
+                },
+                "format":"node_array",
+                "data":[
+                    {"id":"root", "isroot":true, "topic":"jsMind"},
+                    {"id":"sub1", "parentid":"root", "topic":"sub1", "background-color":"#0000ff"},
+                    {"id":"sub11", "parentid":"sub1", "topic":"sub11"},
+                    {"id":"sub12", "parentid":"sub1", "topic":"sub12"},
+                    {"id":"sub13", "parentid":"sub1", "topic":"sub13"},
+                    {"id":"sub2", "parentid":"root", "topic":"sub2"},
+                    {"id":"sub21", "parentid":"sub2", "topic":"sub21"},
+                    {"id":"sub22", "parentid":"sub2", "topic":"sub22","foreground-color":"#33ff33"},
+                    {"id":"sub3", "parentid":"root", "topic":"sub3"},
+                ]
+            };
+            var options = {
+                container:'jsmind_container',
+                theme:'orange',
+                editable:true
+            };
+
+            ReactDOM.render(<ParentComponent
+                mind={mind}
+                options={options}
+                styles={{width: '1000px', height: '600px'}}
+            />, document.getElementById('root'));
+        </script>
+    </body>
+
+</html>
