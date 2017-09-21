@@ -1,9 +1,160 @@
-<!doctype html>
+<!Doctype HTML>
 <html>
-	<head></head>
-	<body>
-		<div id="root"></div>
-	</body>
-	<script type="text/babel">
-	</script>
+    <head>
+        <meta charset="utf-8" />
+        <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>        
+        <script src="https://unpkg.com/react@latest/dist/react.js"></script>
+        <script src="https://unpkg.com/react-dom@latest/dist/react-dom.js"></script>
+        <script src="./jsmind.js"></script>
+        <link href="jsmind.css" rel="stylesheet" type="text/css"/>
+        <script src="https://unpkg.com/antd@2.12.8/dist/antd.min.js"></script>
+        <link href="https://unpkg.com/antd@2.12.8/dist/antd.min.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="text/babel">
+            console.log(jsMind);
+            const { Badge } =  antd;
+            class ReactJsmind extends React.Component {
+                componentDidMount(){
+                    const { mind, options } = this.props;
+                    const opt = {
+                        ...options,
+                        container: 'jsmind_container',
+                    }
+                    const jm = new jsMind(opt);
+                    this.jm = jm;
+                    jm.show(mind);
+                }
+                componentWillReceiveProps(props){
+                    const { mind, options } = props;
+                    const opt = {
+                        ...options,
+                        container: 'jsmind_container',
+                    }
+                    this.jm.show(mind);
+                    // console.log(this.jm.current);
+                }
+                getNode = (e) => {
+                    // console.log(e.target, e.currentTarget);
+                    // console.log(e.handler);
+                    // console.log(e.target.nodeName,e.target.nodeType,e.target.nodeValue);
+                    // console.log(e.target.innerHTML);
+                   if(e.target.nodeName === 'DIV'){
+
+                   }
+                }
+                render() {
+                    const { styles, onClick, onContextMenu, onMouseDown, onMouseUp } = this.props;
+                    return (<div
+                        id="jsmind_container"
+                        onClick={(e)=>{
+                            // console.log('click');
+                            this.realSelectNode = this.getNode(e);
+                            onClick(e, this.realSelectNode);
+                        }}
+                        onMouseDown={(e)=>{
+                            // console.log('down');
+                            this.realSelectNode = this.getNode(e);
+                            onMouseDown(e, this.realSelectNode);
+                        }}
+                        onMouseUp={(e)=>{
+                            // console.log('up');
+                            this.realSelectNode = this.getNode(e);
+                            onMouseUp(e, this.realSelectNode);
+                        }}
+                        onContextMenu={(e)=>{
+                            // console.log('contextMenu');
+                            this.realSelectNode = this.getNode(e);
+                            onContextMenu(e, this.realSelectNode);
+                        }}
+                        style={styles}
+                    ></div>);
+                }
+            }
+
+            class ParentComponent extends React.Component {
+                constructor(props) {
+                  super(props);
+                  this.state = {
+                    visible: true,
+                    mind: props.mind,
+                  };
+                }
+                handleClickButtton = () => {
+                    this.setState({
+                        visible: !this.state.visible,   
+                    });
+                }
+                handleContextMenu=(e, jmnode)=>{
+
+                }
+                handleMouseDown=(e, jmnode) => {
+
+                }
+                handleMouseUp = (e, jmnode) => {
+
+                }
+                handleClick = (e, jmnode) => {
+
+                }
+                render() {
+                    const { styles, mind, options } = this.props;
+                    const { visible } = this.state;
+                    return (<div>
+                        <button onClick={this.handleClickButtton}>123</button>
+                        {visible?
+                        <ReactJsmind
+                            styles= {styles}
+                            mind={mind}
+                            options={options}
+                            onClick={this.handleClick}
+                            onContextMenu={this.handleContextMenu}
+                            onMouseDown={this.handleMouseDown}
+                            onMouseUp={this.handleMouseUp}
+                        />
+                        : null}
+                    </div>
+                    );
+                }
+            }
+
+            var mind = {
+                "version": 1,
+                "meta":{
+                    "name":"demo",
+                    "author":"hizzgdev@163.com",
+                    "version":"0.2",
+                },
+                "format":"node_array",
+                "data":[
+                    {"id":"root", "isroot":true, "topic": '<div id="20170919"></div>'},
+                    {"id":"sub1", "parentid":"root", "topic":"sub1111111", "background-color":"#0000ff"},
+                    {"id":"sub11", "parentid":"sub1", "topic":"sub11"},
+                    {"id":"sub12", "parentid":"sub1", "topic":"sub12"},
+                    {"id":"sub13", "parentid":"sub1", "topic":"sub13"},
+                    {"id":"sub2", "parentid":"root", "topic":"sub2"},
+                    {"id":"sub21", "parentid":"sub2", "topic":"sub21"},
+                    {"id":"sub22", "parentid":"sub2", "topic":"sub22","foreground-color":"#33ff33"},
+                    {"id":"sub3", "parentid":"root", "topic":"sub3"},
+                ]
+            };
+            var options = {
+                container:'jsmind_container',
+                theme:'orange',
+                editable:true,
+                support_html : true,    // 是否支持节点里的HTML元素
+                // support_react : true,    // 是否支持节点里的HTML元素
+            };
+
+            ReactDOM.render(<ParentComponent
+                mind={mind}
+                options={options}
+                styles={{width: '1000px', height: '600px'}}
+            />, document.getElementById('root'));
+
+            ReactDOM.render(<Badge count={25}><a href="#">567890</a></Badge>, document.getElementById('20170919'));
+        </script>
+    </body>
+
 </html>

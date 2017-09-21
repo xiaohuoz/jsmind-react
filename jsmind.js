@@ -1,3 +1,4 @@
+// eslint-disable
 /*
  * Released under BSD License
  * Copyright (c) 2014-2016 hizzgdev@163.com
@@ -21,7 +22,7 @@
     var logger = (typeof console === 'undefined')?{
             log:_noop, debug:_noop, error:_noop, warn:_noop, info:_noop
         }:console;
-
+    // console.log(logger)
     // check global variables
     if(typeof module === 'undefined' || !module.exports){
         if(typeof $w[__name__] != 'undefined'){
@@ -32,14 +33,19 @@
 
     // shortcut of methods in dom
     var $d = $w.document;
+    // 查找节点
     var $g = function(id){return $d.getElementById(id);};
+    // 创建节点
     var $c = function(tag){return $d.createElement(tag);};
+    // 添加添加文本
     var $t = function(n,t){if(n.hasChildNodes()){n.firstChild.nodeValue = t;}else{n.appendChild($d.createTextNode(t));}};
+    // 添加html
     var $h = function(n,t){n.innerHTML = t;};
+    
     // detect isElement
     var $i = function(el){return !!el&&(typeof el==='object')&&(el.nodeType===1)&&(typeof el.style==='object')&&(typeof el.ownerDocument==='object');};
     if(typeof String.prototype.startsWith != 'function'){String.prototype.startsWith=function(p){return this.slice(0,p.length)===p;};}
-
+    // 默认参数
     var DEFAULT_OPTIONS = {
         container : '',   // id of the container
         editable : false, // you can change it in your options
@@ -83,13 +89,15 @@
 
     // core object
     var jm = function(options){
+        // 记录当前对象以供调用及返回
         jm.current = this;
-
+        // 版本
         this.version = __version__;
+        // 参数合并
         var opts = {};
         jm.util.json.merge(opts, DEFAULT_OPTIONS);
         jm.util.json.merge(opts, options);
-
+        // 判断渲染jmmind的容器不为空
         if(!opts.container){
             logger.error('the options.container should not be null or empty.');
             return;
@@ -98,13 +106,15 @@
         this.inited = false;
         this.mind = null;
         this.event_handles = [];
+        // 初始化
         this.init();
     };
 
     // ============= static object =============================================
-    jm.direction = {left:-1,center:0,right:1};
-    jm.event_type = {show:1,resize:2,edit:3,select:4};
+    jm.direction = {left:-1,center:0,right:1}; // 方向定义
+    jm.event_type = {show:1,resize:2,edit:3,select:4}; // 事件定义
 
+    // 节点结构定义
     jm.node = function(sId,iIndex,sTopic,oData,bIsRoot,oParent,eDirection,bExpanded){
         if(!sId){logger.error('invalid nodeid');return;}
         if(typeof iIndex != 'number'){logger.error('invalid node index');return;}
@@ -120,7 +130,7 @@
         this.children = [];
         this._data = {};
     };
-
+    // 获取节点深度差 ？
     jm.node.compare=function(node1,node2){
         // '-1' is alwary the last
         var r = 0;
@@ -140,7 +150,7 @@
         //logger.debug(i1+' <> '+i2+'  =  '+r);
         return r;
     };
-
+    // 判断节点是否存在继承关系
     jm.node.inherited=function(pnode,node){
         if(!!pnode && !!node){
             if(pnode.id === node.id){
@@ -162,6 +172,7 @@
     };
 
     jm.node.prototype = {
+        // 获取节点定位
         get_location:function(){
             var vd = this._data.view;
             return {
@@ -169,6 +180,7 @@
                 y:vd.abs_y
             };
         },
+        // 获取节点大小
         get_size:function(){
             var vd = this._data.view;
             return {
@@ -178,7 +190,7 @@
         }
     };
 
-
+    // mind 数据定义
     jm.mind = function(){
         this.name = null;
         this.author = null;
@@ -189,6 +201,7 @@
     };
 
     jm.mind.prototype = {
+        // 按id获取节点
         get_node:function(nodeid){
             if(nodeid in this.nodes){
                 return this.nodes[nodeid];
@@ -197,7 +210,7 @@
                 return null;
             }
         },
-
+        // 设置根节点
         set_root:function(nodeid, topic, data){
             if(this.root == null){
                 this.root = new jm.node(nodeid, 0, topic, data, true);
@@ -206,7 +219,7 @@
                 logger.error('root node is already exist');
             }
         },
-
+        // 添加节点
         add_node:function(parent_node, nodeid, topic, data, idx, direction, expanded){
             if(!jm.util.is_node(parent_node)){
                 var the_parent_node = this.get_node(parent_node);
@@ -243,7 +256,7 @@
             }
             return node;
         },
-
+        // 在node前加入兄弟节点
         insert_node_before:function(node_before, nodeid, topic, data){
             if(!jm.util.is_node(node_before)){
                 var the_node_before = this.get_node(node_before);
@@ -257,7 +270,7 @@
             var node_index = node_before.index-0.5;
             return this.add_node(node_before.parent, nodeid, topic, data, node_index);
         },
-
+        // 获取前一个兄弟节点
         get_node_before:function(node){
             if(!jm.util.is_node(node)){
                 var the_node = this.get_node(node);
@@ -276,7 +289,7 @@
                 return null;
             }
         },
-
+        // 在节点后插入节点
         insert_node_after:function(node_after, nodeid, topic, data){
             if(!jm.util.is_node(node_after)){
                 var the_node_after = this.get_node(node_before);
@@ -290,7 +303,7 @@
             var node_index = node_after.index + 0.5;
             return this.add_node(node_after.parent, nodeid, topic, data, node_index);
         },
-
+        // 获取后一个兄弟节点
         get_node_after:function(node){
             if(!jm.util.is_node(node)){
                 var the_node = this.get_node(node);
@@ -310,7 +323,7 @@
                 return null;
             }
         },
-
+        // 移动节点
         move_node:function(node, beforeid, parentid, direction){
             if(!jm.util.is_node(node)){
                 var the_node = this.get_node(node);
@@ -326,7 +339,7 @@
             }
             return this._move_node(node, beforeid, parentid, direction);
         },
-
+        // 改变节点方向
         _flow_node_direction:function(node,direction){
             if(typeof direction === 'undefined'){
                 direction = node.direction;
@@ -338,7 +351,7 @@
                 this._flow_node_direction(node.children[len],direction);
             }
         },
-
+        // 移动节点内部实现
         _move_node_internal:function(node, beforeid){
             if(!!node && !!beforeid){
                 if(beforeid == '_last_'){
@@ -357,7 +370,7 @@
             }
             return node;
         },
-
+        // 移动节点
         _move_node:function(node, beforeid, parentid, direction){
             if(!!node && !!parentid){
                 if(node.parent.id != parentid){
@@ -388,7 +401,7 @@
             }
             return node;
         },
-
+        // 删除节点
         remove_node:function(node){
             if(!jm.util.is_node(node)){
                 var the_node = this.get_node(node);
@@ -438,7 +451,7 @@
             //delete node;
             return true;
         },
-
+        // 添加节点
         _put_node:function(node){
             if(node.id in this.nodes){
                 logger.warn('the nodeid \''+node.id+'\' has been already exist.');
@@ -448,7 +461,7 @@
                 return true;
             }
         },
-
+        // 子节点排序
         _reindex:function(node){
             if(node instanceof jm.node){
                 node.children.sort(jm.node.compare);
@@ -470,6 +483,7 @@
                 "format":"node_tree",
                 "data":{"id":"root","topic":"jsMind Example"}
             },
+            // 获取mind数据
             get_mind:function(source){
                 var df = jm.format.node_tree;
                 var mind = new jm.mind();
@@ -479,6 +493,7 @@
                 df._parse(mind,source.data);
                 return mind;
             },
+            // 获取data数据
             get_data:function(mind){
                 var df = jm.format.node_tree;
                 var json = {};
@@ -491,7 +506,7 @@
                 json.data = df._buildnode(mind.root);
                 return json;
             },
-
+            // 解析
             _parse:function(mind, node_root){
                 var df = jm.format.node_tree;
                 var data = df._extract_data(node_root);
@@ -503,7 +518,7 @@
                     }
                 }
             },
-
+            // 拷贝数据
             _extract_data:function(node_json){
                 var data = {};
                 for(var k in node_json){
@@ -514,7 +529,7 @@
                 }
                 return data;
             },
-
+            // 根节点下的节点
             _extract_subnode:function(mind, node_parent, node_json){
                 var df = jm.format.node_tree;
                 var data = df._extract_data(node_json);
@@ -530,7 +545,7 @@
                     }
                 }
             },
-
+            // 构建节点
             _buildnode:function(node){
                 var df = jm.format.node_tree;
                 if(!(node instanceof jm.node)){return;}
@@ -555,6 +570,8 @@
                         o.children.push(df._buildnode(children[i]));
                     }
                 }
+                // 树状结构数据扁平化？
+                logger.debug('o', o);
                 return o;
             }
         },
@@ -571,7 +588,7 @@
                     {"id":"root","topic":"jsMind Example", "isroot":true}
                 ]
             },
-
+            // 获取mind数据
             get_mind:function(source){
                 var df = jm.format.node_array;
                 var mind = new jm.mind();
@@ -581,7 +598,7 @@
                 df._parse(mind,source.data);
                 return mind;
             },
-
+            // 获取data数据
             get_data:function(mind){
                 var df = jm.format.node_array;
                 var json = {};
@@ -595,7 +612,7 @@
                 df._array(mind,json.data);
                 return json;
             },
-
+            // 解析数据
             _parse:function(mind, node_array){
                 var df = jm.format.node_array;
                 var narray = node_array.slice(0);
@@ -608,7 +625,7 @@
                     logger.error('root node can not be found');
                 }
             },
-
+            // 根节点
             _extract_root:function(mind, node_array){
                 var df = jm.format.node_array;
                 var i = node_array.length;
@@ -623,7 +640,7 @@
                 }
                 return null;
             },
-
+            // 根节点下的其他节点
             _extract_subnode:function(mind, parentid, node_array){
                 var df = jm.format.node_array;
                 var i = node_array.length;
@@ -650,9 +667,10 @@
                         }
                     }
                 }
+                // 获取用于计算高度的数据
                 return extract_count;
             },
-
+            // 拷贝数据
             _extract_data:function(node_json){
                 var data = {};
                 for(var k in node_json){
@@ -668,7 +686,7 @@
                 var df = jm.format.node_array;
                 df._array_node(mind.root, node_array);
             },
-
+            // 数据层级化？
             _array_node:function(node, node_array){
                 var df = jm.format.node_array;
                 if(!(node instanceof jm.node)){return;}
@@ -872,10 +890,13 @@
     // ============= utility object =============================================
 
     jm.util = {
+        // 是否是节点
         is_node: function(node){
             return !!node && node instanceof jm.node;
         },
+        // ajax 请求
         ajax:{
+            // IE
             _xhr:function(){
                 var xhr = null;
                 if(window.XMLHttpRequest){
@@ -939,7 +960,7 @@
                 return jm.util.ajax.request(url,param,'POST',callback);
             }
         },
-
+        // 事件监听
         dom:{
             //target,eventType,handler
             add_event:function(t,e,h){
@@ -950,26 +971,30 @@
                 }
             }
         },
-
+        // canvas 绘制方法
         canvas:{
+            // 绘制起点到终点的贝塞尔曲线 
             bezierto: function(ctx,x1,y1,x2,y2){
                 ctx.beginPath();
                 ctx.moveTo(x1,y1);
                 ctx.bezierCurveTo(x1+(x2-x1)*2/3,y1,x1,y2,x2,y2);
                 ctx.stroke();
             },
+            // 绘制直线
             lineto : function(ctx,x1,y1,x2,y2){
                 ctx.beginPath();
                 ctx.moveTo(x1,y1);
                 ctx.lineTo(x2,y2);
                 ctx.stroke();
             },
+            // 清除画布
             clear:function(ctx,x,y,w,h){
                 ctx.clearRect(x,y,w,h);
             }
         },
 
         file:{
+            // 读取文件
             read:function(file_data,fn_callback){
                 var reader = new FileReader();
                 reader.onload = function(){
@@ -979,7 +1004,7 @@
                 };
                 reader.readAsText(file_data);
             },
-
+            // 保存文件
             save:function(file_data, type, name) {
                 var blob;
                 if (typeof $w.Blob === 'function') {
@@ -1013,6 +1038,7 @@
         },
 
         json:{
+            // json转string
             json2string:function(json){
                 if(!!JSON){
                     try{
@@ -1025,6 +1051,7 @@
                     }
                 }
             },
+            // string2json
             string2json:function(json_str){
                 if(!!JSON){
                     try{
@@ -1037,6 +1064,7 @@
                     }
                 }
             },
+            // 合并对象
             merge:function(b,a){
                 for(var o in a){
                     if(o in b){
@@ -1054,13 +1082,13 @@
                 return b;
             }
         },
-
+        // 随机数
         uuid:{
             newid:function(){
                 return (new Date().getTime().toString(16)+Math.random().toString(16).substr(2)).substr(2,16);
             }
         },
-
+        // 文本判空
         text:{
             is_empty:function(s){
                 if(!s){return true;}
@@ -1070,18 +1098,20 @@
     };
 
     jm.prototype={
+        // 初始化
         init : function(){
             if(this.inited){return;}
             this.inited = true;
 
             var opts = this.options;
-
+            // 布局参数
             var opts_layout = {
                 mode:opts.mode,
                 hspace:opts.layout.hspace,
                 vspace:opts.layout.vspace,
                 pspace:opts.layout.pspace
             }
+            // 显示参数
             var opts_view = {
                 container:opts.container,
                 support_html:opts.support_html,
@@ -1095,41 +1125,46 @@
             this.layout = new jm.layout_provider(this, opts_layout);
             this.view = new jm.view_provider(this, opts_view);
             this.shortcut = new jm.shortcut_provider(this, opts.shortcut);
-
+            // 初始化数据（log）
             this.data.init();
+            // 初始化布局（log）
             this.layout.init();
+            // 初始化创建根节点div， 在其下创建canvas节点以及jmnodes节点，初始化输入框及其鼠标事件， 监听enter键控制输入结束
             this.view.init();
+            // 初始化快捷键数据
             this.shortcut.init();
-
+            // 绑定鼠标按下鼠标单击鼠标双击
             this._event_bind();
-
+            // 初始化插件
             jm.init_plugins(this);
         },
-
+        // 启动编辑
         enable_edit:function(){
             this.options.editable = true;
         },
-
+        // 关闭编辑
         disable_edit:function(){
             this.options.editable = false;
         },
 
         // call enable_event_handle('dblclick')
         // options are 'mousedown', 'click', 'dblclick'
+        // 启动事件监听
         enable_event_handle: function(event_handle){
             this.options.default_event_handle['enable_'+event_handle+'_handle'] = true;
         },
 
         // call disable_event_handle('dblclick')
         // options are 'mousedown', 'click', 'dblclick'
+        // 关闭事件监听
         disable_event_handle: function(event_handle){
             this.options.default_event_handle['enable_'+event_handle+'_handle'] = false;
         },
-
+        // 获取当前是否可编辑
         get_editable:function(){
             return this.options.editable;
         },
-
+        // 设置主题
         set_theme:function(theme){
             var theme_old = this.options.theme;
             this.options.theme = (!!theme) ? theme : null;
@@ -1138,12 +1173,13 @@
                 this.view.reset_custom_style();
             }
         },
+        // 绑定事件
         _event_bind:function(){
             this.view.add_event(this,'mousedown',this.mousedown_handle);
             this.view.add_event(this,'click',this.click_handle);
             this.view.add_event(this,'dblclick',this.dblclick_handle);
         },
-
+        // mousedown
         mousedown_handle:function(e){
             if (!this.options.default_event_handle['enable_mousedown_handle']) {
                 return;
@@ -1156,7 +1192,7 @@
                 this.select_clear();
             }
         },
-
+        // click
         click_handle:function(e){
             if (!this.options.default_event_handle['enable_click_handle']) {
                 return;
@@ -1170,7 +1206,7 @@
                 }
             }
         },
-
+        // dblclick
         dblclick_handle:function(e){
             if (!this.options.default_event_handle['enable_dblclick_handle']) {
                 return;
@@ -1183,7 +1219,7 @@
                 }
             }
         },
-
+        // 开始编辑
         begin_edit:function(node){
             if(!jm.util.is_node(node)){
                 var the_node = this.get_node(node);
@@ -1201,11 +1237,11 @@
                 return;
             }
         },
-
+        // 结束编辑
         end_edit:function(){
             this.view.edit_node_end();
         },
-
+        // 切换元素可见状态
         toggle_node:function(node){
             if(!jm.util.is_node(node)){
                 var the_node = this.get_node(node);
@@ -1222,7 +1258,7 @@
             this.view.relayout();
             this.view.restore_location(node);
         },
-
+        // 展开节点
         expand_node:function(node){
             if(!jm.util.is_node(node)){
                 var the_node = this.get_node(node);
@@ -1239,7 +1275,7 @@
             this.view.relayout();
             this.view.restore_location(node);
         },
-
+        // 折叠节点
         collapse_node:function(node){
             if(!jm.util.is_node(node)){
                 var the_node = this.get_node(node);
@@ -1256,28 +1292,28 @@
             this.view.relayout();
             this.view.restore_location(node);
         },
-
+        // 展开全部
         expand_all:function(){
             this.layout.expand_all();
             this.view.relayout();
         },
-
+        // 折叠全部
         collapse_all:function(){
             this.layout.collapse_all();
             this.view.relayout();
         },
-
+        // 展开底层
         expand_to_depth:function(depth){
             this.layout.expand_to_depth(depth);
             this.view.relayout();
         },
-
+        // 重置页面
         _reset:function(){
             this.view.reset();
             this.layout.reset();
             this.data.reset();
         },
-
+        // 显示实现
         _show:function(mind){
             var m = mind || jm.format.node_array.example;
 
@@ -1300,12 +1336,12 @@
 
             this.invoke_event_handle(jm.event_type.show,{data:[mind]});
         },
-
+        // 显示
         show : function(mind){
-            this._reset();
+            this._reset(); // 重置视图 布局 数据
             this._show(mind);
         },
-
+        // 获取meta
         get_meta: function(){
             return {
                 name : this.mind.name,
@@ -1313,7 +1349,7 @@
                 version : this.mind.version
             };
         },
-
+        // 
         get_data: function(data_format){
             var df = data_format || 'node_tree';
             return this.data.get_data(df);
@@ -1326,7 +1362,7 @@
         get_node:function(nodeid){
             return this.mind.get_node(nodeid);
         },
-
+        // 添加节点
         add_node:function(parent_node, nodeid, topic, data){
             if(this.get_editable()){
                 var node = this.mind.add_node(parent_node, nodeid, topic, data);
@@ -1344,7 +1380,7 @@
                 return null;
             }
         },
-
+        // 在节点前插入兄弟节点
         insert_node_before:function(node_before, nodeid, topic, data){
             if(this.get_editable()){
                 var beforeid = jm.util.is_node(node_before) ? node_before.id : node_before;
@@ -1361,7 +1397,7 @@
                 return null;
             }
         },
-
+        // 在节点后插入兄弟节点
         insert_node_after:function(node_after, nodeid, topic, data){
             if(this.get_editable()){
                 var afterid = jm.util.is_node(node_after) ? node_after.id : node_after;
@@ -1378,7 +1414,7 @@
                 return null;
             }
         },
-
+        // 删除节点
         remove_node:function(node){
             if(!jm.util.is_node(node)){
                 var the_node = this.get_node(node);
@@ -1410,7 +1446,7 @@
                 return false;
             }
         },
-
+        // 更新节点
         update_node:function(nodeid, topic){
             if(this.get_editable()){
                 if(jm.util.text.is_empty(topic)){
@@ -1435,7 +1471,7 @@
                 return;
             }
         },
-
+        // 移动节点
         move_node:function(nodeid, beforeid, parentid, direction){
             if(this.get_editable()){
                 var node = this.mind.move_node(nodeid,beforeid,parentid,direction);
@@ -1450,7 +1486,7 @@
                 return;
             }
         },
-
+        // 插入节点
         select_node:function(node){
             if(!jm.util.is_node(node)){
                 var the_node = this.get_node(node);
@@ -1467,7 +1503,7 @@
             this.mind.selected = node;
             this.view.select_node(node);
         },
-
+        // 获取选中节点
         get_selected_node:function(){
             if(!!this.mind){
                 return this.mind.selected;
@@ -1475,18 +1511,18 @@
                 return null;
             }
         },
-
+        // 清除选中状态
         select_clear:function(){
             if(!!this.mind){
                 this.mind.selected = null;
                 this.view.select_clear();
             }
         },
-
+        // 获取节点是否可见
         is_node_visible:function(node){
             return this.layout.is_visible(node);
         },
-
+        // 查找前一个节点
         find_node_before:function(node){
             if(!jm.util.is_node(node)){
                 var the_node = this.get_node(node);
@@ -1517,7 +1553,7 @@
             }
             return n;
         },
-
+        // 查找后一个节点
         find_node_after:function(node){
             if(!jm.util.is_node(node)){
                 var the_node = this.get_node(node);
@@ -1551,7 +1587,7 @@
             }
             return n;
         },
-
+        // 设置节点颜色
         set_node_color:function(nodeid, bgcolor, fgcolor){
             if(this.get_editable()){
                 var node = this.mind.get_node(nodeid);
@@ -1569,7 +1605,7 @@
                 return null;
             }
         },
-
+        // 设置节点样式
         set_node_font_style:function(nodeid, size, weight, style){
             if(this.get_editable()){
                 var node = this.mind.get_node(nodeid);
@@ -1593,7 +1629,7 @@
                 return null;
             }
         },
-
+        // 设置节点背景图
         set_node_background_image:function(nodeid, image, width, height, rotation){
             if(this.get_editable()){
                 var node = this.mind.get_node(nodeid);
@@ -1620,7 +1656,7 @@
                 return null;
             }
         },
-
+        // 设置节点旋转角度
         set_node_background_rotation:function(nodeid, rotation){
             if(this.get_editable()){
                 var node = this.mind.get_node(nodeid);
@@ -1640,18 +1676,19 @@
                 return null;
             }
         },
-
+        // 重定位
         resize:function(){
             this.view.resize();
         },
 
         // callback(type ,data)
+        // 事件监听
         add_event_listener:function(callback){
             if(typeof callback === 'function'){
                 this.event_handles.push(callback);
             }
         },
-
+        // 引入事件监听？
         invoke_event_handle:function(type, data){
             var j = this;
             $w.setTimeout(function(){
@@ -1845,10 +1882,17 @@
             this.bounds.s = Math.max(layout_data.outer_height_left,layout_data.outer_height_right);
         },
 
-        // layout both the x and y axis
+        // layout both the x and y axis 
+        /**
+         * 所有针对根节点的偏移都是针对根节点中心的，而其他节点是针对几点首部靠中，这些点用来确定底部canvas图的渲染
+         * direction 方向
+         * offset_y y轴上相对于父节点偏移 
+         * offset_x x轴上相对于父节点的偏移
+         * outer_height 包含子节点的总的外框高度
+         */
         _layout_offset_subnodes:function(nodes){
             var total_height = 0;
-            var nodes_count = nodes.length;
+            var nodes_count = nodes.length; // 兄弟节点数量
             var i = nodes_count;
             var node = null;
             var node_outer_height = 0;
@@ -1868,16 +1912,18 @@
                     this.set_visible(node.children,false);
                 }
                 node_outer_height = Math.max(node._data.view.height,node_outer_height);
-
                 layout_data.outer_height = node_outer_height;
                 layout_data.offset_y = base_y - node_outer_height/2;
                 layout_data.offset_x = this.opts.hspace * layout_data.direction + pd.view.width * (pd.layout.direction + layout_data.direction)/2;
+                
                 if(!node.parent.isroot){
                     layout_data.offset_x += this.opts.pspace * layout_data.direction;
                 }
 
                 base_y = base_y - node_outer_height - this.opts.vspace;
                 total_height += node_outer_height;
+                // console.log(total_height);
+                // console.debug(layout_data);
             }
             if(nodes_count>1){
                 total_height += this.opts.vspace * (nodes_count-1);
@@ -1888,6 +1934,9 @@
                 node = nodes[i];
                 node._data.layout.offset_y += middle_height;
             }
+            console.debug(nodes);
+            // console.log(total_height);
+            // console.log(layout_data);
             return total_height;
         },
 
@@ -1927,12 +1976,12 @@
             while(i--){
                 node = nodes[i];
                 node._data.layout.offset_y += middle_height;
-                //logger.debug(node.topic);
-                //logger.debug(node._data.layout.offset_y);
+                // logger.debug(node.topic);
+                // logger.debug(node._data.layout.offset_y);
             }
             return total_height;
         },
-
+        // 获取指定节点与根节点之间的偏移量
         get_node_offset:function(node){
             var layout_data = node._data.layout;
             var offset_cache = null;
@@ -1953,6 +2002,7 @@
                 offset_cache.x = x;
                 offset_cache.y = y;
             }
+            // console.debug('offset_cache', offset_cache);
             return offset_cache;
         },
 
@@ -1963,7 +2013,7 @@
             var p = {};
             p.x = offset_p.x + view_data.width*(node._data.layout.direction-1)/2;
             p.y = offset_p.y-view_data.height/2;
-            //logger.debug(p);
+            logger.debug(p);
             return p;
         },
 
@@ -2187,10 +2237,10 @@
                 logger.error('the options.view.container was not be found in dom');
                 return;
             }
-            this.e_panel = $c('div');
-            this.e_canvas = $c('canvas');
-            this.e_nodes = $c('jmnodes');
-            this.e_editor = $c('input');
+            this.e_panel = $c('div'); // 顶层容器
+            this.e_canvas = $c('canvas'); // 背景线视图
+            this.e_nodes = $c('jmnodes'); // 节点 
+            this.e_editor = $c('input'); // 修改时的输入框
 
             this.e_panel.className = 'jsmind-inner';
             this.e_panel.appendChild(this.e_canvas);
@@ -2198,13 +2248,14 @@
 
             this.e_editor.className = 'jsmind-editor';
             this.e_editor.type = 'text';
-
+            // 放大比例
             this.actualZoom = 1;
             this.zoomStep = 0.1;
             this.minZoom = 0.5;
             this.maxZoom = 2;
 
             var v = this;
+            // 处理
             jm.util.dom.add_event(this.e_editor,'keydown',function(e){
                 var evt = e || event;
                 if(evt.keyCode == 13){v.edit_node_end();evt.stopPropagation();}
@@ -2471,8 +2522,8 @@
         },
 
         _show:function(){
-            this.e_canvas.width = this.size.w;
-            this.e_canvas.height = this.size.h;
+            this.e_canvas.width = this.size.w;  // ?
+            this.e_canvas.height = this.size.h; // ?
             this.e_nodes.style.width = this.size.w+'px';
             this.e_nodes.style.height = this.size.h+'px';
             this.show_nodes();
@@ -2507,7 +2558,7 @@
             var outer_w = this.e_panel.clientWidth;
             var outer_h = this.e_panel.clientHeight;
             if(this.size.w > outer_w){
-                var _offset = this.get_view_offset();
+                var _offset = this.get_view_offset(); // 获取视图的整体偏移
                 this.e_panel.scrollLeft = _offset.x - outer_w/2;
             }
             if(this.size.h > outer_h){
@@ -2567,7 +2618,7 @@
             var p_expander= null;
             var expander_text = '-';
             var view_data = null;
-            var _offset = this.get_view_offset();
+            var _offset = this.get_view_offset(); // 获取根节点的偏移量
             for(var nodeid in nodes){
                 node = nodes[nodeid];
                 view_data = node._data.view;
@@ -2579,7 +2630,7 @@
                     continue;
                 }
                 this.reset_node_custom_style(node);
-                p = this.layout.get_node_point(node);
+                p = this.layout.get_node_point(node);// 获取相对于根节点中心的偏移量
                 view_data.abs_x = _offset.x + p.x;
                 view_data.abs_y = _offset.y + p.y;
                 node_element.style.left = (_offset.x+p.x) + 'px';
@@ -2693,7 +2744,7 @@
             ctx.strokeStyle = this.opts.line_color;
             ctx.lineWidth = this.opts.line_width;
             ctx.lineCap = 'round';
-
+            // 绘制贝塞尔曲线
             jm.util.canvas.bezierto(
                 ctx,
                 pin.x + offset.x,
@@ -2921,3 +2972,4 @@
     }
 })(typeof window !== 'undefined' ? window : global);
 
+// eslint-enable
